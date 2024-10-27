@@ -1,44 +1,21 @@
-const checkStringLength = (str, len) => str.length <= len;
+function checkMeeting(startOfWorkday, endOfWorkday, startOfMeeting, meetingDuration) {
+    function timeInMinutes(time) {
+        const [hours, minutes] = time.split(':').map(Number);
+        return hours * 60 + minutes;
+    }
 
-// Строка короче 20 символов
-checkStringLength('проверяемая строка', 20); // true
-// Длина строки ровно 18 символов
-checkStringLength('проверяемая строка', 18); // true
-// Строка длиннее 10 символов
-checkStringLength('проверяемая строка', 10); // false
+    const startOfWorkdayInMinutes = timeInMinutes(startOfWorkday);
+    const endOfWorkdayInMinutes = timeInMinutes(endOfWorkday);
+    const startOfMeetingInMinutes = timeInMinutes(startOfMeeting);
 
-function isPalindrome(str) {
-  const strReverse = str.toLowerCase().split('').reverse().join('');
-  return strReverse === str.toLowerCase();
+    const endOfMeetingInMinutes = startOfMeetingInMinutes + meetingDuration;
+
+    return startOfWorkdayInMinutes <= startOfMeetingInMinutes && endOfMeetingInMinutes <= endOfWorkdayInMinutes;
 }
 
-// Строка является палиндромом
-isPalindrome('топот'); // true
-// Несмотря на разный регистр, тоже палиндром
-isPalindrome('ДовОд'); // true
-// Это не палиндром
-isPalindrome('Кекс'); // false
+console.log(checkMeeting('08:00', '17:30', '14:00', 90)); // true
+console.log(checkMeeting('8:0', '10:0', '8:0', 120));     // true
+console.log(checkMeeting('08:00', '14:30', '14:00', 90)); // false
+console.log(checkMeeting('14:00', '17:30', '08:0', 90));  // false
+console.log(checkMeeting('8:00', '17:30', '08:00', 900)); // false
 
-
-function getNumbers(input) {
-  const str = String(input);
-
-  const digits = str.match(/\d+/g);
-
-  if (!digits) {
-    return NaN;
-  }
-
-  return parseInt(digits.join(''), 10);
-}
-
-
-getNumbers('2023 год'); // 2023
-getNumbers('ECMAScript 2022'); // 2022
-getNumbers('1 кефир, 0.5 батона'); // 105
-getNumbers('агент 007'); // 7
-getNumbers('а я томат'); // NaN
-
-getNumbers(2023); // 2023
-getNumbers(-1); // 1
-getNumbers(1.5); // 15
