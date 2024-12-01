@@ -1,91 +1,97 @@
+import { isEscKey } from './utils.js';
+
+const DEFAULT_RENDERED_COMMENTS = 5;
+const STEP_ADDED_COMMENTS = 5;
+
 const bigPicture = document.querySelector('.big-picture');
-const bigPictureImg = bigPicture.querySelector('.big-picture__img img');
-const bigPictureClose = bigPicture.querySelector('.big-picture__close');
-const likesCount = bigPicture.querySelector('.likes-count');
-const commentsCount = bigPicture.querySelector('.comments-count');
-const socialComments = bigPicture.querySelector('.social__comments');
-const socialCaption = bigPicture.querySelector('.social__caption');
-const commentCountBlock = bigPicture.querySelector('.social__comment-count');
-const commentsLoader = bigPicture.querySelector('.comments-loader');
+const bigPictureImg = bigPicture.querySelector('.big-picture__src');
+const bigPictureCloseBtn = bigPicture.querySelector('.big-picture__cancel');
+const bigPictureCommentsList = bigPicture.querySelector('.social__comments');
+const bigPictureCommentsLoaderBtn = bigPicture.querySelector('.comments-loader');
+const bigPictureCounterComments = bigPicture.querySelector('.social__comment-count');
+const bigPictureCaption = bigPicture.querySelector('.social__caption');
+const bigPictureLike = bigPicture.querySelector('.likes-count');
 
-function openBigPicture(data) {
-  // Заполняем данные для окна
-  bigPictureImg.src = data.url;
-  likesCount.textContent = data.likes;
-  commentsCount.textContent = data.comments.length;
-  socialCaption.textContent = data.description;
+let actualComments = [];
 
-  // Очищаем существующие комментарии
-  socialComments.innerHTML = '';
+let countRenderedComments = DEFAULT_RENDERED_COMMENTS;
 
-  // Вставляем новые комментарии
-  data.comments.forEach(comment => {
-    const commentElement = document.createElement('li');
-    commentElement.classList.add('social__comment');
+const getCommentTemplate = ({avatar, message, name}) => `<li class="social__comment">
+  <img class="social__picture" src="${avatar}" alt="${name}" width="35" height="35">
+  <p class="social__text">${message}</p>
+</li>`;
 
-    const commentAvatar = document.createElement('img');
-    commentAvatar.classList.add('social__picture');
-    commentAvatar.src = comment.avatar;
-    commentAvatar.alt = comment.name;
-    commentAvatar.width = 35;
-    commentAvatar.height = 35;
+const getCounterCommentsTemplate = (commentsCount) => `${Math.min(countRenderedComments, commentsCount)} из <span class="comments-count">${commentsCount}</span> комментариев`;
 
-    const commentText = document.createElement('p');
-    commentText.classList.add('social__text');
-    commentText.textContent = comment.message;
+const getCounterComments = () => {
+  bigPictureCounterComments.innerHTML='';
+  bigPictureCounterComments.insertAdjacentHTML('afterbegin', getCounterCommentsTemplate(actualComments.length));
+};
 
-    commentElement.appendChild(commentAvatar);
-    commentElement.appendChild(commentText);
+const renderComments = () => {
+  getCounterComments();
 
-    socialComments.appendChild(commentElement);
-  });
+  bigPictureCommentsList.innerHTML='';
+  const commentsTemplate = actualComments.slice(0, countRenderedComments).map((comment) => getCommentTemplate(comment)).join('');
+  bigPictureCommentsList.insertAdjacentHTML('afterbegin', commentsTemplate);
 
-  // Показываем окно и скрываем ненужные блоки
-  bigPicture.classList.remove('hidden');
-  commentCountBlock.classList.add('hidden');
-  commentsLoader.classList.add('hidden');
-  document.body.classList.add('modal-open');
+  if (countRenderedComments >= actualComments.length) {
+    bigPictureCommentsLoaderBtn.removeEventListener('click', onBigPictureCommentsLoaderBtnClick);
+    bigPictureCommentsLoaderBtn.classList.add('hidden');
+  }
+};
 
-  // Закрытие по клику на кнопку
-  bigPictureClose.addEventListener('click', closeBigPicture);
+const initComments = (comments) => {
+  actualComments = comments.slice();
+  bigPictureCommentsList.innerHTML='';
 
-  // Закрытие по нажатию на Esc
-  document.addEventListener('keydown', onEscPress);
-}
+  if (comments.length === 0) {
+    bigPictureCommentsLoaderBtn.classList.add('hidden');
+    bigPictureCounterComments.textContent='Нет комментариев';
+    return;
+  }
 
-function closeBigPicture() {
-  bigPicture.classList.add('hidden');
+  renderComments();
+  bigPictureCommentsLoaderBtn.addEventListener('click', onBigPictureCommentsLoaderBtnClick);
+};
+
+const closeBigPicture = () => {
   document.body.classList.remove('modal-open');
-  bigPictureClose.removeEventListener('click', closeBigPicture);
-  document.removeEventListener('keydown', onEscPress);
+  bigPicture.classList.add('hidden');
+  bigPictureCloseBtn.removeEventListener('click', onBigPictureCloseBtnClick);
+  window.removeEventListener('keydown', onWindowEscKeydown);
+  bigPictureCommentsLoaderBtn.classList.remove('hidden');
+  bigPictureCommentsLoaderBtn.removeEventListener('click', onBigPictureCommentsLoaderBtnClick);
+  countRenderedComments = DEFAULT_RENDERED_COMMENTS;
+};
+
+function onBigPictureCloseBtnClick() {
+  closeBigPicture();
 }
 
-function onEscPress(evt) {
-  if (evt.key === 'Escape' || evt.key === 'Esc') {
+function onWindowEscKeydown(evt) {
+  if(isEscKey(evt)){
     closeBigPicture();
   }
 }
 
-// Пример данных для теста
-const exampleData = {
-  url: 'https://example.com/photo.jpg',
-  likes: 123,
-  comments: [
-    {
-      avatar: 'https://example.com/avatar1.jpg',
-      name: 'Иван Иванов',
-      message: 'Отличная фотография!'
-    },
-    {
-      avatar: 'https://example.com/avatar2.jpg',
-      name: 'Мария Петрова',
-      message: 'Очень красиво!'
-    }
-  ],
-  description: 'Это пример описания фотографии.'
+function onBigPictureCommentsLoaderBtnClick() {
+  countRenderedComments += STEP_ADDED_COMMENTS;
+  renderComments();
+}
+
+const getBigPicture = (photo) => {
+  document.body.classList.add('modal-open');
+  bigPicture.classList.remove('hidden');
+
+  bigPictureImg.src = photo.url;
+  bigPictureCaption.textContent = photo.description;
+  bigPictureLike.textContent = photo.likes;
+
+  initComments(photo.comments);
+
+  bigPictureCloseBtn.addEventListener('click', onBigPictureCloseBtnClick);
+  window.addEventListener('keydown', onWindowEscKeydown);
 };
 
-// Открытие окна при клике на миниатюру (пример)
-document.querySelector('.thumbnail').addEventListener('click', () => {
-  openBigPicture(exampleData);
-});
+export { getBigPicture };
