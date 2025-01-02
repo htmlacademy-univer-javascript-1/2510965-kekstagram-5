@@ -18,4 +18,6 @@ const createPhotosElement = (photos) => {
   });
   listOfPhotos.appendChild(listOfPhotosFragment);
 };
+
 export {createPhotosElement};
+
