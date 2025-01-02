@@ -1,6 +1,9 @@
 import {isEscapeKey} from './utils.js';
+import {resetSliderToNone, resetControlToStandart} from './slider.js';
+
 const MAX_HASHTAGS_COUNT = 5;
 const MAX_SYMBOLS = 20;
+const VALID_SYMBOLS = /^#[a-zа-яё0-9]{1,19}$/i;
 
 const form = document.querySelector('.img-upload__form');
 const formOverlay = form.querySelector('.img-upload__overlay');
@@ -21,6 +24,8 @@ const showModal = () => {
 const hideModal = () => {
   form.reset();
   pristine.reset();
+  resetSliderToNone();
+  resetControlToStandart();
   formOverlay.classList.add('hidden');
   body.classList.remove('modal-open');
   document.removeEventListener('keydown', onDocumentKeydown);
@@ -46,6 +51,10 @@ const hashtagsHandler = (value) => {
 
   const rules = [
     {
+      check: inputArray.some((item) => item.length === 1 && item[0] === '#'),
+      error: 'Хэш-тэг не может состоять из одного символа #',
+    },
+    {
       check: inputArray.length > MAX_HASHTAGS_COUNT,
       error: `Нельзя указать более ${MAX_HASHTAGS_COUNT} хэш-тегов`,
     },
@@ -66,7 +75,7 @@ const hashtagsHandler = (value) => {
       error: 'Хэш-теги не должны повторяться',
     },
     {
-      check: inputArray.some((item) => !/^#[a-zа-яё0-9]{1,19}/i.test(item)),
+      check: inputArray.some((item) => !VALID_SYMBOLS.test(item)),
       error: 'Хэш-тег содержит недопустимые символы',
     },
   ];
@@ -82,18 +91,8 @@ const hashtagsHandler = (value) => {
 
 pristine.addValidator(inputHashtag, hashtagsHandler, error, 2, false);
 
-const onHashtagInput = () => {
-  if (pristine.validate()) {
-    form.querySelector('img-upload__submit').classList.remove('disabled');
-  } else {
-    form.querySelector('img-upload__submit').classList.add('disabled');
-  }
-};
-
-inputHashtag.addEventListener('input', onHashtagInput);
-
 function onDocumentKeydown(evt) {
-  if (isEscapeKey && !isTextFieldFocused()) {
+  if (isEscapeKey(evt) && !isTextFieldFocused()) {
     evt.preventDefault();
     hideModal();
   }
