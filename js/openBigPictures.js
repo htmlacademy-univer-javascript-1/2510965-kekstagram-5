@@ -1,76 +1,111 @@
-import { isEscKey } from './utils.js';
-import { COMMENTS_COUNT } from './constants.js';
+import {isEscapeKey} from './utils.js';
 
-const bigPhotoModal = document.querySelector('.big-picture');
-const bigPhotoCloseElement = document.querySelector('.big-picture__cancel');
-const body = document.querySelector('body');
-const commentsContainer = document.querySelector('.social__comments');
-const commentTemplate = document.querySelector('.social__comment');
+const COMMENTS_STEP = 5;
+const bigPicture = document.querySelector('.big-picture');
+const bigPictureImage = bigPicture.querySelector('.big-picture__img img');
+const pictureCloseButton = document.querySelector('.big-picture__cancel');
+const likesCount = bigPicture.querySelector('.likes-count');
+const pictureCaption = bigPicture.querySelector('.social__caption');
+const socialComments = bigPicture.querySelector('.social__comments');
+const socialCommentsCount = bigPicture.querySelector('.social__comment-count');
+const loadComments = bigPicture.querySelector('.comments-loader');
+const socialFooterText = bigPicture.querySelector('.social__footer-text');
 const commentFragment = document.createDocumentFragment();
-const commentLoad = document.querySelector('.social__comments-loader');
-const commentCount = document.querySelector('.social__comment-count');
-let allComments;
-let commentsShow = 0;
 
-const createComment = ({avatar, message, name}) => {
-  const comment = commentTemplate.cloneNode(true);
-  comment.querySelector('.social__picture').src = avatar;
-  comment.querySelector('.social__picture').alt = name;
-  comment.querySelector('.social__text').textContent = message;
-  commentFragment.append(comment);
+let commentsCount = COMMENTS_STEP;
+let currentComments = [];
+
+const createComment = (comment) => {
+  const newComment = document.createElement('li');
+  const imgComment = document.createElement('img');
+  const textComment = document.createElement('p');
+
+  newComment.classList.add('social__comment');
+  imgComment.classList.add('social--picture');
+  textComment.classList.add('social__text');
+
+  imgComment.src = comment.avatar;
+  imgComment.alt = comment.name;
+  textComment.textContent = comment.message;
+
+  newComment.appendChild(imgComment);
+  newComment.appendChild(textComment);
+
+  commentFragment.appendChild(newComment);
 };
 
-const generateComments = (comments) => {
-  comments.forEach((comment) => {
-    createComment(comment);
-  });
-  commentsContainer.append(commentFragment);
+const renderComments = () => {
+  socialComments.innerHTML = '';
+  socialCommentsCount.innerHTML = '';
+
+  commentsCount = (commentsCount > currentComments.length) ? currentComments.length : commentsCount;
+
+  const commentsSelected = currentComments.slice(0, commentsCount);
+
+  if (currentComments.length <= COMMENTS_STEP || commentsCount >= currentComments.length) {
+    loadComments.classList.add('hidden');
+  } else {
+    loadComments.classList.remove('hidden');
+  }
+
+  socialCommentsCount.innerHTML = `${commentsCount} из <span class="comments-count">${currentComments.length}</span> комментариев`;
+
+  commentsSelected.forEach(createComment);
+
+  socialComments.appendChild(commentFragment);
 };
 
-const onOpenPhotoKeydown = (evt) => {
-  if (isEscKey(evt)) {
-    evt.preventDefault();
-    bigPhotoModal.classList.add('hidden');
+const onLoadCommentsButtonClick = () => {
+  commentsCount += COMMENTS_STEP;
+  renderComments();
+};
+
+const closeBigPicture = () => {
+  bigPicture.classList.add('hidden');
+  document.body.classList.remove('modal-open');
+
+  commentsCount = COMMENTS_STEP;
+  currentComments = [];
+  socialFooterText.value = '';
+};
+
+
+const onBigPictureEscKeyDown = (evt) => {
+  evt.preventDefault();
+  if (isEscapeKey(evt)) {
+    closeBigPicture();
+    document.removeEventListener('keydown', onBigPictureEscKeyDown);
+    loadComments.removeEventListener('click', onLoadCommentsButtonClick);
   }
 };
 
-const openPhoto = ({url, description, likes, comments}) => {
-  bigPhotoModal.classList.remove('hidden');
-  commentsContainer.innerHTML = '';
-  bigPhotoModal.querySelector('.big-picture__img img').src = url;
-  bigPhotoModal.querySelector('.social__caption').textContent = description;
-  bigPhotoModal.querySelector('.likes-count').textContent = likes;
-  bigPhotoModal.querySelector('.comments-count').textContent = comments.length;
-  allComments = comments;
-  loadComments();
-  body.classList.add('modal-open');
-  commentLoad.addEventListener('click', loadComments);
-  document.addEventListener('keydown', onOpenPhotoKeydown);
+
+const onCloseBigPictureClick = () => {
+  closeBigPicture();
+
+  document.removeEventListener('keydown', onBigPictureEscKeyDown);
 };
 
-function loadComments () {
-  const newPortion = allComments.slice(commentsShow, commentsShow + COMMENTS_COUNT);
-  commentsShow += newPortion.length;
-  generateComments(newPortion);
-  if(commentsShow >= allComments.length){
-    commentLoad.classList.add('hidden');
-  } else{
-    commentLoad.classList.remove('hidden');
-  }
-  commentCount.innerHTML = `${commentsShow} из <span class="comments-count">${allComments.length}</span> комментариев`;
-}
 
-const closePhoto = () => {
-  bigPhotoModal.classList.add('hidden');
-  document.removeEventListener('keydown', onOpenPhotoKeydown);
-  body.classList.remove('modal-open');
-  commentLoad.removeEventListener('click', loadComments);
-  commentsShow = 0;
-  allComments = [];
+const openBigPicture = (picture) => {
+  const {url, comments, likes, description} = picture;
+
+  bigPicture.classList.remove('hidden');
+  document.body.classList.add('modal-open');
+
+  bigPictureImage.src = url;
+  likesCount.textContent = likes;
+  pictureCaption.textContent = description;
+
+  currentComments = comments.slice();
+
+  renderComments();
+
+  loadComments.addEventListener('click', onLoadCommentsButtonClick);
+
+  document.addEventListener('keydown', onBigPictureEscKeyDown);
 };
 
-bigPhotoCloseElement.addEventListener('click', () => {
-  closePhoto();
-});
+pictureCloseButton.addEventListener('click', onCloseBigPictureClick);
 
-export {openPhoto};
+export {openBigPicture};
