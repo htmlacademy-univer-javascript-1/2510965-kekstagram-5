@@ -29,3 +29,4 @@ const onFail = () => {
 loadData(onSuccess, onFail);
 
 export { photos };
+
