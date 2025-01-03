@@ -1,9 +1,11 @@
-import {openBigPicture} from './openBigPictures.js';
+import { openBigPicture } from './openBigPictures.js';
 
 const pictures = document.querySelector('.pictures');
 const pictureTemplate = document.querySelector('#picture')
   .content
   .querySelector('.picture');
+const picturesFragment = document.createDocumentFragment();
+
 
 const createPictureElement = (picture) => {
   const { url, description, likes, comments } = picture;
@@ -23,8 +25,6 @@ const createPictureElement = (picture) => {
 };
 
 const renderPhotos = (photos) => {
-  const picturesFragment = document.createDocumentFragment();
-
   photos.forEach((photo) => {
     picturesFragment.appendChild(createPictureElement(photo));
   });
@@ -32,4 +32,13 @@ const renderPhotos = (photos) => {
   pictures.appendChild(picturesFragment);
 };
 
-export {renderPhotos};
+const removePictures = () => {
+  const images = document.querySelectorAll('.picture');
+  if (images) {
+    images.forEach((element) => {
+      element.remove();
+    });
+  }
+};
+
+export { renderPhotos, removePictures };

@@ -25,4 +25,22 @@ const getRandomArrayElement = (elements) => elements[createRandomNumbers(0, elem
 
 const isEscapeKey = (evt) => evt.key === 'Escape';
 
-export {getRandomInteger, createRandomNumbers, getRandomArrayElement, isEscapeKey};
+const debounce = (callback, timeoutDelay = 500) => {
+  let timeoutId;
+  return (...rest) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => callback.apply(this, rest), timeoutDelay);
+  };
+
+
+};
+
+const shuffleArray = (array) => {
+  for (let indexOne = array.length - 1; indexOne > 0; indexOne--) {
+    const indexTwo = Math.floor(Math.random() * (indexOne + 1));
+    [array[indexOne], array[indexTwo]] = [array[indexTwo], array[indexOne]];
+  }
+  return array;
+};
+
+export {getRandomInteger, createRandomNumbers, getRandomArrayElement, isEscapeKey, debounce, shuffleArray};
