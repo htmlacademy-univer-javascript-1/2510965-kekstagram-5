@@ -1,32 +1,19 @@
-import './uploadPhoto.js';
-import { loadData } from './fetch.js';
-import { renderPhotos } from './uploadPhoto.js';
-import './addHashtag.js';
-import './slider.js';
-import './filter.js';
+import { fetchPhotos } from './server.js';
+import { setFormSubmit } from './form.js';
+import { initFilters } from './filter.js';
+import { renderPhotos } from './bigPictures.js';
+import { alertDataLoadError } from './utils.js';
 
-let photos;
+let photos = [];
 
-const onSuccess = (data) => {
+const handleSuccessLoad = (data) => {
   photos = data.slice();
-  renderPhotos(data.slice());
+  renderPhotos(photos);
   document.querySelector('.img-filters').classList.remove('img-filters--inactive');
 };
 
-const onFail = () => {
-  const messageAlert = document.createElement('div');
-  messageAlert.style.position = 'absolute';
-  messageAlert.style.left = 0;
-  messageAlert.style.top = 0;
-  messageAlert.style.right = 0;
-  messageAlert.style.fontSize = '25px';
-  messageAlert.style.backgroundColor = 'red';
-  messageAlert.style.textAlign = 'center';
-  messageAlert.textContent = 'Возникла ошибка при загрузке фотографий';
-  document.body.append(messageAlert);
-};
+fetchPhotos(handleSuccessLoad, alertDataLoadError).then();
+initFilters();
+setFormSubmit();
 
-loadData(onSuccess, onFail);
-
-export { photos };
-
+export {photos};

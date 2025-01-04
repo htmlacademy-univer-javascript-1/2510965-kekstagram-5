@@ -1,37 +1,47 @@
+import { renderPhotos, clearPhotos } from './bigPictures.js';
+import { debounceFunction, pickRandomItems, randomSequenceGenerator } from './utils.js';
 import { photos } from './main.js';
-import { renderPhotos, removePictures } from './uploadPhoto.js';
-import { debounce, shuffleArray } from './utils.js';
 
-const COUNT_OF_FILTER = 10;
-const ACTIVE_CLASS = 'img-filters__button--active';
+const DEBOUNCE_TIMEOUT = 500;
+const RANDOM_COUNT = 10;
+const ACTIVE_CLASS_NAME = 'img-filters__button--active';
 
-const imgFilters = document.querySelector('.img-filters');
-const imgFiltersForm = imgFilters.querySelector('.img-filters__form');
-
-const availableFilters = {
-  'filter-default': () => photos.slice(),
-  'filter-random': () => shuffleArray(photos.slice(0, COUNT_OF_FILTER)),
-  'filter-discussed': () => photos.slice().sort((firstElement, secondElement) => secondElement.comments.length - firstElement.comments.length),
+const FILTER_HANDLERS = {
+  'filter-default': () => photos,
+  'filter-random': () => pickRandomItems(photos, RANDOM_COUNT, randomSequenceGenerator(0, photos.length - 1)),
+  'filter-discussed': () => [...photos].sort((a, b) => b.comments.length - a.comments.length),
 };
 
-const isButton = (evt) => evt.target.tagName === 'BUTTON';
+const filtersSection = document.querySelector('.img-filters');
+const filtersControls = filtersSection.querySelector('.img-filters__form');
 
-const onImgFiltersFormClick = debounce((evt) => {
-  if (isButton(evt)) {
-    removePictures();
-    renderPhotos(availableFilters[evt.target.id]());
+const isButton = (event) => event.target.tagName === 'BUTTON';
+
+const filterChangeHandler = debounceFunction((event) => {
+  if (isButton(event)) {
+    clearPhotos();
+    const chosenFilter = FILTER_HANDLERS[event.target.id];
+    renderPhotos(chosenFilter());
   }
-});
+}, DEBOUNCE_TIMEOUT);
 
-const onButtonClick = (evt) => {
-  if (isButton(evt)) {
-    const selectedButton = imgFiltersForm.querySelector(`.${ACTIVE_CLASS}`);
-    if (selectedButton) {
-      selectedButton.classList.remove(ACTIVE_CLASS);
+const setActiveButton = (event) => {
+  if (isButton(event)) {
+    const activeButton = filtersControls.querySelector(`.${ACTIVE_CLASS_NAME}`);
+
+    if (activeButton) {
+      activeButton.classList.remove(ACTIVE_CLASS_NAME);
+      activeButton.disabled = true;
     }
-    evt.target.classList.add(ACTIVE_CLASS);
+
+    event.target.classList.add(ACTIVE_CLASS_NAME);
+    event.target.disabled = false;
   }
 };
 
-imgFiltersForm.addEventListener('click', onImgFiltersFormClick);
-imgFiltersForm.addEventListener('click', onButtonClick);
+const initFilters = () => {
+  filtersControls.addEventListener('click', filterChangeHandler);
+  filtersControls.addEventListener('click', setActiveButton);
+};
+
+export { initFilters };
