@@ -42,7 +42,7 @@ export const resetToDefaultEffect = () => {
   document.querySelector('#effect-none').checked = true;
 };
 
-export const handleEffectChange = (event) => {
+export const onHandleEffectChange = (event) => {
   if (event.target.matches('input[type=radio]')) {
     if (event.target.id === 'effect-none') {
       resetToDefaultEffect();

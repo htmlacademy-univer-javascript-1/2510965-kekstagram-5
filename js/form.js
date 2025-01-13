@@ -1,8 +1,8 @@
 import {sendPhotos} from './server.js';
 import {updatePreview} from './image.js';
 import {showErrorUploadMessage, showSuccessUploadMessage} from './utils.js';
-import {isTagCountValid, areTagsUnique, handleKeyDown, validateCommentLength, validateTags} from './addHashtag.js';
-import {handleEffectChange, resetToDefaultEffect} from './slider.js';
+import {isTagCountValid, checkTagsUnique, onHandleKeyDown, validateCommentLength, validateTags} from './add-hashtag.js';
+import {onHandleEffectChange, resetToDefaultEffect} from './slider.js';
 
 const imageForm = document.querySelector('.img-upload__form');
 const uploadModal = document.querySelector('.img-upload__overlay');
@@ -30,7 +30,7 @@ const SubmitButtonText = {
   SENDING: 'Публикую...'
 };
 
-const operateScale = (evt) => {
+const onOperateScale = (evt) => {
   let scale = parseInt(scaleOutput.value, 10);
   if (evt.target.classList.contains('scale__control--bigger') && scale + SCALE_DIFFERENCE <= MAX_SCALE) {
     scale += SCALE_DIFFERENCE;
@@ -42,10 +42,10 @@ const operateScale = (evt) => {
   imagePreview.style.transform = `scale(${scale / 100})`;
 };
 
-const addFilters = () => filterButtonList.addEventListener('click', handleEffectChange);
+const addFilters = () => filterButtonList.addEventListener('click', onHandleEffectChange);
 
 pristine.addValidator(hashTagsField, isTagCountValid, 'Слишком много хэш-тегов');
-pristine.addValidator(hashTagsField, areTagsUnique, 'Повтор хэш-тега');
+pristine.addValidator(hashTagsField, checkTagsUnique, 'Повтор хэш-тега');
 pristine.addValidator(hashTagsField, validateTags, 'Невалидный хэш-тег');
 
 pristine.addValidator(descriptionField, validateCommentLength, 'Комментарий длиннее 140 символов');
@@ -53,15 +53,15 @@ pristine.addValidator(descriptionField, validateCommentLength, 'Коммента
 const openModal = () => {
   uploadModal.classList.remove('hidden');
   document.body.classList.add('modal-open');
-  document.addEventListener('keydown', handleKeyDown);
-  exitButton.addEventListener('click', closeModal);
-  scaleAddButton.addEventListener('click', operateScale);
-  scaleDecreaseButton.addEventListener('click', operateScale);
+  document.addEventListener('keydown', onHandleKeyDown);
+  exitButton.addEventListener('click', onCloseModal);
+  scaleAddButton.addEventListener('click', onOperateScale);
+  scaleDecreaseButton.addEventListener('click', onOperateScale);
   updatePreview();
   addFilters();
 };
 
-function closeModal(){
+function onCloseModal(){
   pristine.reset();
   uploadInput.value = '';
   descriptionField.value = '';
@@ -71,11 +71,11 @@ function closeModal(){
   resetToDefaultEffect();
   uploadModal.classList.add('hidden');
   document.body.classList.remove('modal-open');
-  document.removeEventListener('keydown', handleKeyDown);
-  exitButton.removeEventListener('click', closeModal);
-  scaleAddButton.removeEventListener('click', operateScale);
-  scaleDecreaseButton.removeEventListener('click', operateScale);
-  filterButtonList.removeEventListener('click', handleEffectChange);
+  document.removeEventListener('keydown', onHandleKeyDown);
+  exitButton.removeEventListener('click', onCloseModal);
+  scaleAddButton.removeEventListener('click', onOperateScale);
+  scaleDecreaseButton.removeEventListener('click', onOperateScale);
+  filterButtonList.removeEventListener('click', onHandleEffectChange);
 }
 
 uploadInput.addEventListener('change', (evt) => {
@@ -84,7 +84,7 @@ uploadInput.addEventListener('change', (evt) => {
 });
 
 exitButton.addEventListener('click', () => {
-  closeModal();
+  onCloseModal();
 });
 
 const blockSubmitButton = () => {
@@ -99,7 +99,7 @@ const unblockSubmitButton = () => {
 
 const onFormSubmitSuccess = () => {
   showSuccessUploadMessage();
-  closeModal();
+  onCloseModal();
 };
 
 const setFormSubmit = () => {
@@ -114,4 +114,4 @@ const setFormSubmit = () => {
   });
 };
 
-export {setFormSubmit, closeModal, openModal};
+export {setFormSubmit, onCloseModal, openModal};

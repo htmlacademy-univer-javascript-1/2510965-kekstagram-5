@@ -1,4 +1,4 @@
-import { renderPhotos, clearPhotos } from './bigPictures.js';
+import { renderPhotos, clearPhotos } from './big-pictures.js';
 import { debounceFunction, pickRandomItems, randomSequenceGenerator } from './utils.js';
 import { photos } from './main.js';
 
@@ -17,7 +17,7 @@ const filtersControls = filtersSection.querySelector('.img-filters__form');
 
 const isButton = (event) => event.target.tagName === 'BUTTON';
 
-const filterChangeHandler = debounceFunction((event) => {
+const onFilterChangeHandler = debounceFunction((event) => {
   if (isButton(event)) {
     clearPhotos();
     const chosenFilter = FILTER_HANDLERS[event.target.id];
@@ -25,23 +25,21 @@ const filterChangeHandler = debounceFunction((event) => {
   }
 }, DEBOUNCE_TIMEOUT);
 
-const setActiveButton = (event) => {
+const onSetActiveButton = (event) => {
   if (isButton(event)) {
     const activeButton = filtersControls.querySelector(`.${ACTIVE_CLASS_NAME}`);
 
     if (activeButton) {
       activeButton.classList.remove(ACTIVE_CLASS_NAME);
-      activeButton.disabled = true;
     }
 
     event.target.classList.add(ACTIVE_CLASS_NAME);
-    event.target.disabled = false;
   }
 };
 
 const initFilters = () => {
-  filtersControls.addEventListener('click', filterChangeHandler);
-  filtersControls.addEventListener('click', setActiveButton);
+  filtersControls.addEventListener('click', onFilterChangeHandler);
+  filtersControls.addEventListener('click', onSetActiveButton);
 };
 
 export { initFilters };

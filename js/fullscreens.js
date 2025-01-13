@@ -8,7 +8,7 @@ const loadMoreButton = metadataContainer.querySelector('.social__comments-loader
 const commentsCounter = metadataContainer.querySelector('.social__comment-shown-count');
 const COMMENTS_BATCH_SIZE = 5;
 const picturePreview = modalContainer.querySelector('.big-picture__img');
-let loaderHandler;
+let onLoader;
 
 const renderComment = (comment) => {
   commentsContainer.insertAdjacentHTML('beforeend', `<li class="social__comment"><img class="social__picture" src="${comment.avatar}" alt="${comment.name}" width="35" height="35"><p class="social__text">${comment.message}</p></li>`);
@@ -31,7 +31,7 @@ const populateComments = (comments) => {
   }
   toggleLoaderButton(comments.length);
 
-  loaderHandler = () => {
+  onLoader = () => {
     const displayedCount = commentsContainer.children.length;
     for (let i = displayedCount; i < displayedCount + Math.min(COMMENTS_BATCH_SIZE, comments.length - displayedCount); ++i) {
       renderComment(comments[i]);
@@ -39,7 +39,7 @@ const populateComments = (comments) => {
     toggleLoaderButton(comments.length);
   };
 
-  loadMoreButton.addEventListener('click', loaderHandler);
+  loadMoreButton.addEventListener('click', onLoader);
 };
 
 const renderBigPicture = (url, description, likes, comments) => {
@@ -56,24 +56,24 @@ const renderBigPicture = (url, description, likes, comments) => {
 
 const onKeydown = (evt) => {
   if (isEscapePressed(evt)) {
-    closeModal();
+    onCloseModal();
   }
 };
 
-function closeModal() {
+function onCloseModal() {
   modalContainer.classList.add('hidden');
   document.removeEventListener('keydown', onKeydown);
   document.body.classList.remove('modal-open');
-  if (loaderHandler) {
-    loadMoreButton.removeEventListener('click', loaderHandler);
-    loaderHandler = null;
+  if (onLoader) {
+    loadMoreButton.removeEventListener('click', onLoader);
+    onLoader = null;
   }
 
   commentsContainer.innerHTML = '';
 }
 
 modalCloseButton.addEventListener('click', () => {
-  closeModal();
+  onCloseModal();
 });
 
 function openModal(url, description, likes, comments) {

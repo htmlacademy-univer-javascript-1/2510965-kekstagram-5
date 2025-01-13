@@ -36,15 +36,15 @@ const normalizeType = function (array) {
   return array;
 };
 
-const timeToMinutes = function (array) {
+const convertTimeToMinutes = function (array) {
   return (+array[0] * 60 + +array[1]);
 };
 
 const isOutOfBounds = function (workdayStartTime = '', workdayEndTime = '',
   meetingStartTime = '', meetingDuration = 0) {
-  const workStartTime = timeToMinutes(normalizeType(workdayStartTime.split(':')));
-  const workEndTime = timeToMinutes(normalizeType(workdayEndTime.split(':')));
-  const meetStartTime = timeToMinutes(normalizeType(meetingStartTime.split(':')));
+  const workStartTime = convertTimeToMinutes(normalizeType(workdayStartTime.split(':')));
+  const workEndTime = convertTimeToMinutes(normalizeType(workdayEndTime.split(':')));
+  const meetStartTime = convertTimeToMinutes(normalizeType(meetingStartTime.split(':')));
 
   if (workStartTime > meetStartTime) {
     return false;
